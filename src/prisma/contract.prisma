@@ -1,0 +1,38 @@
+// use prisma-8
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum TokenType {
+  REFRESH
+}
+
+model User {
+  id                    String                        @id @default(uuid())
+  email                 String                        @unique
+  password              String
+  name                  String
+  emailVerified         Timestamptz?                  @map("email_verified")
+  createdAt             TimestamptzString             @default(now()) @map("created_at")
+  updatedAt             temporal.updatedAtString()    @map("updated_at")
+
+  role                  Role                          @default(USER)
+  tokens                Token[]
+}
+
+model Token {
+  id                    String                        @id @default(uuid())
+  type                  TokenType
+  token                 String
+  expiresAt             Timestamptz
+  createdAt             TimestamptzString             @default(now()) @map("created_at")
+  consumedAt            Timestamptz?                  @map("consumed_at")
+  revokedAt             Timestamptz?                  @map("revoked_at")
+
+  userId                String
+  user                  User                          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+}
